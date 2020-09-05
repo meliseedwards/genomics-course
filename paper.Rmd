@@ -1,0 +1,12 @@
+# class example
+
+---
+title: 'Sex differences in hippocampal aromatase in common marmosets treated with aromatase inhibitors. '
+author: "Melise Edwards, Sam Lam, Ravi Ranjan, Mariana Pereira, Courtney Babbitt, Agnes Lacreuse"
+output: html_document
+bibliography: data/references.bib
+---
+
+Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
+
+# REFERENCES
