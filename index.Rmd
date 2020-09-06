@@ -13,9 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This is a frustrated attempt to create a website on Github at 8pm on a Saturday night! 
 
-```{r}
-
-```
+![](https://www.adventure-journal.com/wp-content/uploads/2019/03/MeliseEdwards04-by-Andrea-Sassenrath.jpg)
 
 ## Lab 1
 
