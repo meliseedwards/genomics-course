@@ -67,4 +67,10 @@ sort(DNA, decreasing=T)
 
 ### References
 
+R Core Team. 2015. “R: A Language and Environment for Statistical Computing.” [http://www.r-project.org](http://www.r-project.org)
+
+RMarkdown Team. 2015. Rmarkdown: R Markdown Document Conversion, R Package. Boston, MA: RStudio, Inc. [http://rmarkdown.rstudio.com/](http://rmarkdown.rstudio.com/)
+
+RStudio Team. 2015. RStudio: Integrated Development Environment for R. Boston, MA: RStudio, Inc. [http://www.rstudio.com/](http://www.rstudio.com/)
+
 [Lab 2 References](data/references.bib)
