@@ -22,3 +22,5 @@ This is a frustrated attempt to create a website on Github at 8pm on a Saturday 
 # Lab 2
 
 [git, GitHub and Rstudio project](lab2.html)
+
+hello
