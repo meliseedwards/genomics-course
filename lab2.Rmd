@@ -1,30 +1,70 @@
 ---
-title: "lab2"
+title: "Lab 2 : git, GitHub and Rstudio projects"
 author: "Melise Edwards"
 date: "9/6/2020"
 output: html_document
+bibliography: data/references.bib
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+### Exercise 1
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+For x = 3 and y = 15, compute the sum, difference, product and quotient of x and y
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+```{r}
+x <- 3
+y <- 15
+
+x + y
+x - y
+x * y
+y / x
+
 ```
 
-## Including Plots
+### Exercise 2
 
-You can also embed plots, for example:
+For x = 2 and y = 3, Test x^5 is greater than y^4 and return a logical value
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+x <- 2
+y <- 3
+
+isFALSE(x^5 > y^4)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Exercise 3
+
+Create a vector of the values 22, 62, 148, 43 and 129. Determine the sum of the vector. Divide each value in the vector by the sum to determine relate frequency.
+
+```{r}
+Vector <- c(22, 62, 148, 43, 129)
+
+sum(Vector)
+
+Vector[1:4]/sum(Vector)
+
+
+
+```
+
+### Exercise 4
+
+Create a vector of the nucleotides A, T, C and G. Sort the vector.
+
+```{r}
+
+DNA <- c("A", "T", "C", "G")
+
+sort(DNA, decreasing=T)
+
+```
+
+
+### References
+
+[Lab 2 References](data/references.bib)
