@@ -1,0 +1,26 @@
+---
+title: "Lab 3 - Data Wrangling"
+author: "Melise Edwards"
+date: "9/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Notes from Sept 7, 2020 Class 
+
+### Calling upon tidyverse after installation 
+
+```{r}
+library(tidyverse)
+```
+
+# downloading file from moodle
+
+```{r}
+download.file(url="https://ndownloader.figshare.com/files/2292169",
+              destfile = "data/portal_data_joined.csv")
+
+```
+
