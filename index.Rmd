@@ -1,11 +1,7 @@
 ---
 title: "Evolutionary Genomics & Bioinformatics"
 author: "Melise Edwards"
-<<<<<<< HEAD
 date: "9/5/2020"
-=======
-date: "09/05/2020"
->>>>>>> 6f6b4563718bcf44aa7f6dc404bf03fcc12ada87
 output: html_document
 bibliography: data/references.bib
 ---
@@ -14,36 +10,39 @@ bibliography: data/references.bib
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-<<<<<<< HEAD
-### Welcome to my website!
 
+# Welcome to my website!
 
-
-=======
-## Welcome to my website!
 
 This is a frustrated attempt to create a website on Github at 8pm on a Saturday night! 
 
 ![](https://www.adventure-journal.com/wp-content/uploads/2019/03/MeliseEdwards04-by-Andrea-Sassenrath.jpg)
->>>>>>> 6f6b4563718bcf44aa7f6dc404bf03fcc12ada87
 
-### Evolutionary Genomics Lab Assignments
 
-<<<<<<< HEAD
+### **Evolutionary Genomics Lab Assignments**
 
-=======
+
+
+*********
+
+
 ## Lab 1
->>>>>>> 6f6b4563718bcf44aa7f6dc404bf03fcc12ada87
+
 
 [Introduction to R and Reproducible Research](lab1.html)
+
 
 ## Lab 2
 
 [git, GitHub and Rstudio project](lab2.html)
 
+
 ## Lab 3
 
-[Data Carpentry Lab3a](lab3a.html)
+[Data Carpentry Lab3a](Lab3a.html)
+
+[Data Carpentry Lab3b](Lab3b.html)
+
 
 ## Lab 4
 
@@ -57,8 +56,11 @@ coming soon
 
 coming soon 
 
+------
 
-# Current Research Projects
+# **Current Research Projects**
+
+******
 
 ### Aromatase inhibition and hippocampal gene expression in nonhuman primates 
 
@@ -66,6 +68,7 @@ coming soon
 
 As a second year PhD student in the lab of Agnes Lacreuse, my current project focuses on changes in brain gene expression with the treatment of aromatase inhibitors (AIs.) AIs are drugs commonly given to people with estrogen receptor positive breast cancers and work by eliminating the synthesis of peripheral estrogen by the enzyme aromatase. However, women who take AIs commonly report negative side effects such as cognitive impairment, hot flashes and sleep disruption. For the first time, we investigate the changes in gene expression in nonhuman primates treated with letrozole or a placebo treatment. Using qPCR, we are comparing the expression of estrogen receptors and aromatase in the hippocampus--an area associated with learning and memory. Previous work in the Lacreuse lab identified that increases in hippocampal estradiol (E2) were found in letrozole treated animals. This work will identify whether the enzyme aromatase and estrogen receptors are also increased in the brain for nonhuman primates treated with letrozole. 
 
+******
 
 ### Sex differences in gene expression in aged common marmosets 
 
