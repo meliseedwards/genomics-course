@@ -18,9 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Welcome to my website!
 
 
-## Lab1
 
-This is the link to Melise's [Lab 1 Assignment](linkhurr)
 =======
 ## Welcome to my website!
 
@@ -32,7 +30,7 @@ This is a frustrated attempt to create a website on Github at 8pm on a Saturday 
 ### Evolutionary Genomics Lab Assignments
 
 <<<<<<< HEAD
-## Lab2
+
 =======
 ## Lab 1
 >>>>>>> 6f6b4563718bcf44aa7f6dc404bf03fcc12ada87
@@ -45,7 +43,7 @@ This is a frustrated attempt to create a website on Github at 8pm on a Saturday 
 
 ## Lab 3
 
-coming soon
+[Data Carpentry Lab3a](lab3a.html)
 
 ## Lab 4
 
