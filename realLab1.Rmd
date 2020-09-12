@@ -1,0 +1,7 @@
+isFALSE(x > 2)
+
+Vector <- c(22, 62, 148, 43, 129)
+
+sum(Vector)
+
+Vector[1:4]/sum(Vector)
