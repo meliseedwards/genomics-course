@@ -1,0 +1,250 @@
+---
+title: "Lab 3 - Data Wrangling"
+author: "Melise Edwards"
+date: "9/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Notes from Sept 7, 2020 Class 
+
+### Calling upon tidyverse after installation 
+
+```{r}
+library(tidyverse)
+library(crayon)
+```
+
+### downloading file from moodle
+
+```{r}
+download.file(url="https://ndownloader.figshare.com/files/2292169",
+              destfile = "data/portal_data_joined.csv")
+
+```
+
+### loading file
+
+```{r}
+surveys <- read.csv("data/portal_data_joined.csv")
+```
+
+surveys
+```{r}
+head(surveys)
+```
+
+### to open in another tab and see as a table, use the function view()
+```{r}
+view(surveys)
+```
+
+
+### inspecting the structure of a dataframe
+
+```{r}
+str(surveys)
+```
+
+### To get a sense of the structure of the dataframe we can use the following:
+For size:
+dim(surveys)
+nrow(surveys)
+ncol(surveys)
+
+For content - first and last six rows:
+head(surveys)
+tail(surveys)
+
+Names:
+colnames(surveys)
+rownames(surveys)
+
+# Challenge 1
+
+Based on the output of str(surveys), can you answer the following questions?
+
+# *What is the class of the object surveys?*
+```{r}
+class(surveys)
+```
+
+# *How many rows and how many columns are in this object?*
+
+```{r}
+nrow(surveys)
+```
+```{r}
+ncol(surveys)
+```
+
+# *How many species have been recorded during these surveys?*
+
+```{r}
+length(unique(surveys$species))
+```
+
+```{r}
+length(unique(surveys$species_id))
+```
+
+
+### Inspecting the dataframe 
+
+```{r}
+surveys[3,]
+```
+
+```{r}
+head_surveys <- surveys[1:6, ]
+```
+
+When you do surveys["species_id"]
+This is a dataframe
+
+When you do surveys[, "species_id"]
+This however returns a vector, same thing as surveys$species_id 
+
+# Challenge 2
+
+## *1. Create a data.frame (surveys_200) containing only the data in row 200 of the surveys dataset.*
+
+```{r}
+surveys_200 <- surveys[200, ]
+```
+
+## *2. Notice how nrow() gave you the number of rows in a data.frame?*
+Use that number to pull out just that last row in the data frame.
+```{r}
+nrow(surveys)
+```
+
+## *Compare that with what you see as the last row using tail() to make sure it’s meeting expectations.*
+
+```{r}
+tail(surveys)
+```
+
+## *Pull out that last row using nrow() instead of the row number.*
+
+```{r}
+n_row <- nrow(surveys)
+```
+
+## *Create a new data frame (surveys_last) from that last row.*
+
+```{r}
+surveys_last <- surveys[n_row, ]
+```
+
+## 3. *Use nrow() to extract the row that is in the middle of the data frame. Store the content of this row in an object named surveys_middle.*
+
+```{r}
+n_row/2
+```
+
+```{r}
+surveys_middle <- surveys[17393, ]
+```
+
+```{r}
+surveys_middle
+```
+
+## *4. Combine nrow() with the - notation above to reproduce the behavior of head(surveys), keeping just the first through 6th rows of the surveys dataset.*
+
+```{r}
+surveys[-(7:n_row), ]
+```
+
+## New lesson on Factors 
+
+```{r}
+sex <- factor(c("male", "female", "female", "male"))
+```
+
+```{r}
+levels(sex)
+```
+
+```{r}
+nlevels(sex)
+```
+
+Examples
+
+```{r}
+year_fct <- factor(c(1990, 1983, 1977, 1998, 1990))
+```
+
+```{r}
+as.numeric(levels(year_fct))
+```
+
+## Renaming factors lesson 
+
+```{r}
+plot(as.factor(surveys$sex))
+```
+
+```{r}
+sex <- factor(surveys$sex)
+```
+```{r}
+head(sex)
+```
+
+```{r}
+levels(sex)
+```
+
+```{r}
+levels(sex) [1] <- "undetermined"
+
+```
+
+```{r}
+head(sex)
+```
+
+# Challenge 
+Rename “F” and “M” to “female” and “male” respectively.
+```{r}
+levels(sex) [2] <- "Female"
+```
+
+```{r}
+levels(sex) [3] <- "Male"
+```
+
+```{r}
+levels(sex)
+```
+
+
+Now that we have renamed the factor level to “undetermined”, can you recreate the barplot such that “undetermined” is last (after “male”)?
+
+```{r}
+levels(sex)
+```
+
+```{r}
+sex <- factor(sex, levels = c("Female", "Male", "undetermined"))
+```
+
+```{r}
+plot(sex)
+```
+
+```{r}
+surveys <- read.csv("data/portal_data_joined.csv", stringsAsFactors = TRUE)
+surveys
+```
+
+```{r}
+surveys <- read.csv("data_raw/portal_data_joined.csv", stringsAsFactors = FALSE)
+str(surveys)
+```
+

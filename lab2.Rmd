@@ -1,0 +1,76 @@
+---
+title: "Lab 2 : git, GitHub and Rstudio projects"
+author: "Melise Edwards"
+date: "9/6/2020"
+output: html_document
+bibliography: data/references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Exercise 1
+
+For x = 3 and y = 15, compute the sum, difference, product and quotient of x and y
+
+
+```{r}
+x <- 3
+y <- 15
+
+x + y
+x - y
+x * y
+y / x
+
+```
+
+### Exercise 2
+
+For x = 2 and y = 3, Test x^5 is greater than y^4 and return a logical value
+
+```{r}
+x <- 2
+y <- 3
+
+isFALSE(x^5 > y^4)
+```
+
+### Exercise 3
+
+Create a vector of the values 22, 62, 148, 43 and 129. Determine the sum of the vector. Divide each value in the vector by the sum to determine relate frequency.
+
+```{r}
+Vector <- c(22, 62, 148, 43, 129)
+
+sum(Vector)
+
+Vector[1:4]/sum(Vector)
+
+
+
+```
+
+### Exercise 4
+
+Create a vector of the nucleotides A, T, C and G. Sort the vector.
+
+```{r}
+
+DNA <- c("A", "T", "C", "G")
+
+sort(DNA, decreasing=T)
+
+```
+
+
+### References
+
+R Core Team. 2015. “R: A Language and Environment for Statistical Computing.” [http://www.r-project.org](http://www.r-project.org)
+
+RMarkdown Team. 2015. Rmarkdown: R Markdown Document Conversion, R Package. Boston, MA: RStudio, Inc. [http://rmarkdown.rstudio.com/](http://rmarkdown.rstudio.com/)
+
+RStudio Team. 2015. RStudio: Integrated Development Environment for R. Boston, MA: RStudio, Inc. [http://www.rstudio.com/](http://www.rstudio.com/)
+
+[Lab 2 References](data/references.bib)
