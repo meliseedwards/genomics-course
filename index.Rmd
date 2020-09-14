@@ -1,7 +1,6 @@
 ---
 title: "Evolutionary Genomics & Bioinformatics"
 author: "Melise Edwards"
-date: "9/5/2020"
 output: html_document
 bibliography: data/references.bib
 ---
@@ -13,10 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Welcome to my website!
 
+#### I am a second year PhD student in the Neuroscience & Behavior program at UMass Amherst. I work in the lab of Dr. Agnes Lacreuse and study how sex hormones affect cognition and behavior in nonhuman primates. I am interested in neurodegenerative disease pathology and how reproductive senescence affects aging.
 
-This is a frustrated attempt to create a website on Github at 8pm on a Saturday night! 
 
-![](https://www.adventure-journal.com/wp-content/uploads/2019/03/MeliseEdwards04-by-Andrea-Sassenrath.jpg)
+![](https://i1.rgstatic.net/ii/profile.image/769377251102723-1560445239343_Q512/Melise_Edwards3.jpg)
 
 
 ### **Evolutionary Genomics Lab Assignments**
@@ -46,7 +45,9 @@ This is a frustrated attempt to create a website on Github at 8pm on a Saturday 
 
 ## Lab 4
 
-coming soon 
+[Data Visualization in ggplot2](DataViz_ggplot2.html)
+
+[In Class exercises](Lab4_EvoGeno.html)
 
 ## Lab 5 
 
@@ -62,11 +63,13 @@ coming soon
 
 ******
 
+
+
 ### Aromatase inhibition and hippocampal gene expression in nonhuman primates 
 
 ![](https://www.researchgate.net/profile/Ami_Raval/publication/51049654/figure/fig3/AS:667703576645641@1536204346495/Aromatase-enzyme-converts-testosterone-to-estradiol_W640.jpg) 
 
-As a second year PhD student in the lab of Agnes Lacreuse, my current project focuses on changes in brain gene expression with the treatment of aromatase inhibitors (AIs.) AIs are drugs commonly given to people with estrogen receptor positive breast cancers and work by eliminating the synthesis of peripheral estrogen by the enzyme aromatase. However, women who take AIs commonly report negative side effects such as cognitive impairment, hot flashes and sleep disruption. For the first time, we investigate the changes in gene expression in nonhuman primates treated with letrozole or a placebo treatment. Using qPCR, we are comparing the expression of estrogen receptors and aromatase in the hippocampus--an area associated with learning and memory. Previous work in the Lacreuse lab identified that increases in hippocampal estradiol (E2) were found in letrozole treated animals. This work will identify whether the enzyme aromatase and estrogen receptors are also increased in the brain for nonhuman primates treated with letrozole. 
+As a second year PhD student in the lab of Agnes Lacreuse, my current project focuses on changes in brain gene expression with the treatment of aromatase inhibitors (AIs.) AIs are drugs commonly given to people with estrogen receptor positive breast cancers and work by eliminating the synthesis of peripheral estrogen by the enzyme aromatase. However, women who take AIs commonly report negative side effects such as cognitive impairment, hot flashes and sleep disruption. For the first time, we investigate the changes in gene expression in nonhuman primates treated with letrozole or a placebo treatment. Using qPCR, we are comparing the expression of estrogen receptors and aromatase in the hippocampus--an area associated with learning and memory. Previous work in the Lacreuse lab identified that increases in hippocampal estradiol (E2) were found in letrozole treated animals. **This work will identify whether the enzyme aromatase and estrogen receptors are also increased in the brain for nonhuman primates treated with letrozole.** 
 
 ******
 
@@ -74,4 +77,4 @@ As a second year PhD student in the lab of Agnes Lacreuse, my current project fo
 
 ![](https://t4.ftcdn.net/jpg/01/15/89/73/240_F_115897352_7KUjZdDPnJpBSUx4tSDEOzuguJPd4Nc1.jpg)
 
-My second project focuses on sex differences in brain pathology in a nonhuman primate model of Alzheimer's Disease. Sex is considered a risk factor for neurodegenerative diseases like Alzheimer's Disease (AD) with women nearly 2x more likely to be diagnosed with the disease. The transition to menopause for cis women has been an area of interest for why cis women are more likely to succumb to AD. Significant declines in sex hormones during menopause contribute to cognitive impairment, sleep disruption, hot flashes and trouble thermoregulating. The common marmoset (C. jacchus) is a nonhuman primate neuroanatomically similar to humans that also show signs of reproductive senescense. By using RNA-sequencing, we will investigate changes in gene expression in marmosets who show signs of healthy and unhealthy aging as determined by a battery of cognitive tasks from midlife to old age. By analyzing brain areas associated with cognition, thermoregulation and sleep, we will ask if genes associated with inflammation, synaptic plasticity, microglial activation and astrocytic hyperactivity are more prevalent in poor-performing marmosets and females.  
+My second project focuses on sex differences in brain pathology in a nonhuman primate model of Alzheimer's Disease. Sex is considered a risk factor for neurodegenerative diseases like Alzheimer's Disease (AD) with women nearly 2x more likely to be diagnosed with the disease. The transition to menopause for cis women has been an area of interest for why cis women are more likely to succumb to AD. Significant declines in sex hormones during menopause contribute to cognitive impairment, sleep disruption, hot flashes and trouble thermoregulating. The common marmoset (C. jacchus) is a nonhuman primate neuroanatomically similar to humans that also show signs of reproductive senescense. By using RNA-sequencing, we will investigate changes in gene expression in marmosets who show signs of healthy and unhealthy aging as determined by a battery of cognitive tasks from midlife to old age. **By analyzing brain areas associated with cognition, thermoregulation and sleep, we will ask if genes associated with inflammation, synaptic plasticity, microglial activation and astrocytic hyperactivity are more prevalent in poor-performing marmosets and females.**
