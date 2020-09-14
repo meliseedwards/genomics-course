@@ -82,9 +82,7 @@ ncol(surveys)
 
 # *How many species have been recorded during these surveys?*
 
-```{r}
-length(unique(surveys$species))
-```
+
 
 ```{r}
 length(unique(surveys$species_id))

@@ -1,0 +1,224 @@
+---
+title: "EvoGeno_Sept14"
+author: "Melise Edwards"
+date: "9/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(tidyverse)
+```
+
+```{r}
+report_03_11_2020 <-   read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/03-11-2020.csv")) %>%
+  rename(Country_Region = "Country/Region", Province_State = "Province/State") 
+```
+
+```{r}
+head(report_03_11_2020)
+```
+
+```{r}
+str(report_03_11_2020)
+```
+
+```{r}
+view(report_03_11_2020)
+```
+
+```{r}
+library(DT)
+```
+
+```{r}
+datatable(report_03_11_2020)
+```
+
+
+
+# Exercises (Part 1)
+
+
+#### 1. The format of the daily reports has changed over time. What are the differences between 3/13/2020, the Friday before spring break 2020 and yesterday 6 months later on 9/13/2020? Load the files into R and use str() and View() (or in the top right corner click on Environment and then the data frame.). Note the in the more recent dates they have changed the column headers so that it is no longer necessary to rename Province_State and Country_Region.
+
+```{r}
+report_03_13_2020 <-   read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/03-13-2020.csv")) %>%
+  rename(Country_Region = "Country/Region", Province_State = "Province/State") 
+
+str(report_03_13_2020)
+
+```
+
+
+```{r}
+report_09_13_2020 <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/09-13-2020.csv"))
+
+str(report_09_13_2020)
+```
+
+
+#### 2. Many countries have multiple entries representing different regions (e.g. counties and states). To get the counts for a country we need to summarise the data. Use group_by() and summarize() to make a data frame (tibble) with total counts for each country.
+
+```{r}
+total_03_13_2020 <- report_03_13_2020 %>%
+  group_by(Country_Region) %>%
+  summarize(
+    total_deaths = sum(Deaths),
+    total_confirmed = sum(Confirmed),
+    total_recovered = sum(Recovered)
+    )
+
+total_09_13_2020 <- report_09_13_2020 %>% 
+  group_by(Country_Region) %>% 
+  summarize(
+    total_deaths=sum(Deaths),
+    total_confirmed=sum(Confirmed),
+    total_recovered=sum(Recovered)
+  )
+```
+
+```{r}
+total_03_13_2020
+
+total_09_13_2020
+```
+
+
+#### 3. To get counts for confirmed cases per U.S state use filter() to select US and group_by and summarize as above.
+
+
+#### Total deaths for March 13, 2020
+```{r}
+report_03_13_2020 %>% 
+  filter(Country_Region =="US") %>% 
+  group_by(Province_State, Country_Region) %>% 
+  summarise(Deaths) %>% 
+  arrange(Deaths)
+  
+```
+
+
+#### Total deaths for September 13, 2020
+```{r}
+report_09_13_2020 %>% 
+  filter(Country_Region=="US") %>% 
+  group_by(Province_State) %>% 
+  summarise(Deaths) %>% 
+  arrange(Deaths)
+```
+
+
+
+#### 4. It will be difficult to make simple graphs with the data from all countries in the world or even the US states. Use arrange_by() and slice() to get just the top 10 countries for Deaths.
+
+```{r}
+top_10_March <- total_03_13_2020 %>% 
+  arrange(total_deaths) %>% 
+  slice_tail(n=10)
+
+top_10_March
+```
+
+Could have also done arrange(desc(Deaths)) instead of slice_tail. 
+
+
+```{r}
+top_10_Sept <- total_09_13_2020 %>% 
+  arrange(total_deaths) %>% 
+  slice_tail(n=10)
+
+top_10_Sept
+```
+
+******
+
+### Now, we will switch to doing the ggplot2 data vis lesson using data carpentry website : https://datacarpentry.org/R-ecology-lesson/04-visualization-ggplot2.html
+
+#### nevermind, moved to other link "Data Visualization using ggplot2" on main website 
+
+******
+
+# Exercises (Part 2)
+
+
+#### 5. Make plots using geom_point() of the 10 countries with the confirmed cases and deaths (two separate graphs) on 3/12/2020 and 9/12/2020.
+
+```{r}
+#March
+
+ggplot(data = top_10_March, aes(x = Country_Region, y = total_deaths)) + 
+  geom_point(aes(color = Country_Region), size = 3)
+
+ggplot(data = top_10_March, aes(x = Country_Region, y = total_confirmed)) + 
+  geom_point(aes(color = Country_Region), size = 3)
+
+```
+
+
+```{r}
+# September 
+
+ggplot(data = top_10_Sept, aes(x = Country_Region, y = total_deaths)) + 
+  geom_point(aes(color = Country_Region, size = 3))
+
+
+ggplot(data = top_10_Sept, aes(x = Country_Region, y = total_confirmed)) + 
+  geom_point(aes(color = Country_Region, size = 3))
+```
+
+
+#### 6. Make using geom_bar of the 10 states with the most confirmed cases and deaths (two separate graphs) on 3/12/2020 and 9/12/2020.
+
+Unclear, but I think this just means top 10 states of the US. Geom_point would have been better for this? 
+
+```{r}
+#March
+
+top10_US_march <- report_03_13_2020 %>% 
+  filter(Country_Region=="US") %>% 
+  group_by(Province_State) %>% 
+  summarise(Deaths) %>% 
+  arrange(desc(Deaths))
+
+top10_US_march <- top10_US_march %>% 
+  slice(1:10)
+
+US_march_barplot <- ggplot(top10_US_march, aes(x = Deaths, y = Province_State))
+US_march_barplot + geom_bar(stat = "identity", aes(fill = Province_State))
+
+```
+
+```{r}
+#geom_col basically seems like the same output but easier to write 
+
+ggplot(top10_US_march, aes(x = Province_State, y = Deaths)) + 
+         geom_col(aes(fill = Province_State)) + 
+  ggtitle("March 2020 Top 10 Highest # Deaths by US State")
+```
+
+
+
+```{r}
+# September 
+
+top10_us_sept1 <- report_09_13_2020 %>% 
+  filter(Country_Region=="US")
+ 
+top10_us_sept1 <- top10_us_sept1 %>% 
+  group_by(Province_State) %>% 
+  summarise(all_deaths = sum(Deaths)) %>% 
+  arrange(desc(all_deaths)) %>% 
+  slice(1:10)
+
+# summarise let us take all the different states and sum them together 
+# now to graph 
+
+
+US_sept_barplot <- ggplot(top10_us_sept1, aes(x = all_deaths, y = Province_State))
+US_sept_barplot + geom_bar(stat = "identity", aes(fill = Province_State))
+```
+

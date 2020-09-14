@@ -1,0 +1,134 @@
+---
+title: "Data Visualization with ggplot2"
+author: "Melise Edwards"
+date: "9/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Now, we will switch to doing the ggplot2 data vis lesson using data carpentry website : https://datacarpentry.org/R-ecology-lesson/04-visualization-ggplot2.html
+
+
+```{r}
+library(tidyverse)
+```
+
+```{r message=FALSE, include=FALSE}
+surveys_complete <- read_csv("data/surveys_complete.csv")
+```
+
+```{r}
+ggplot(data = surveys_complete, mapping = aes(x=weight, y=hindfoot_length)) + geom_point()
+```
+
+
+
+#### the below method shows you how you can save the ggplot metrics(?) or what you want to graph, then use the "+" symbol to add whichever visualization or plot type you want to the data. Very cool! 
+```{r}
+surveys_plot <- ggplot(data = surveys_complete, 
+                       mapping = aes(x = weight, y = hindfoot_length))
+
+surveys_plot + geom_point()
+```
+
+
+## Challenge 1
+#### install hexbin
+#### then use geom_hex() function
+
+```{r}
+library(hexbin)
+surveys_plot + 
+  geom_hex()
+```
+
+
+#### use transparency (alpha) to avoid overplotting. Values of (alpha) range from 0 to 1 with lower values corresponding to more transparent colors. Can also use the aesthetic parameters (colour) and (fil).
+
+links for more learning = https://ggplot2.tidyverse.org/reference/aes_colour_fill_alpha.html
+
+```{r}
+surveys_plot +
+  geom_point(alpha=0.1)
+```
+
+
+
+
+#### adding colors 
+
+```{r}
+ggplot(surveys_complete, aes(x=weight, y=hindfoot_length)) +
+  geom_point(alpha=0.1, color= "blue")
+```
+
+
+#### to add color by species id
+```{r}
+ggplot(surveys_complete, aes(x = weight, y = hindfoot_length)) + 
+  geom_point(alpha = 0.1, aes(color = species_id))
+```
+
+
+### Challenge 2
+#### Use what you just learned to create a scatter plot of weight over species_id with the plot types showing in different colors. Is this a good way to show this type of data?
+
+No this does not seem like the best way to show the data, maybe a split boxplot or something...
+
+```{r}
+ggplot(surveys_complete, aes(x = species_id, y = weight)) + 
+  geom_point(aes(color = plot_type))
+```
+
+
+
+### Boxplots 
+
+```{r}
+ggplot(data = surveys_complete, mapping = aes(x = species_id, y = weight)) + 
+         geom_boxplot()
+```
+
+
+#### tomato colors?! this would be perfect for our cognitive testing scores and PCR differences in protein expression depending on treatment and/or sex. 
+
+```{r}
+ggplot(data = surveys_complete, mapping = aes(x = species_id, y = weight)) + 
+  geom_jitter(alpha = 0.3, color = "tomato") +
+  geom_boxplot(alpha = 0)
+ 
+```
+
+
+### Challenge 3 
+#### Replace the box plot with a violin plot; see geom_violin().
+
+```{r}
+violin.eg <- ggplot(data = surveys_complete, mapping = aes(x = species_id, y = weight)) + 
+  geom_jitter(alpha = 0.3, color = "tomato") +
+  geom_violin(alpha = 0) +
+  theme_classic() + 
+  ggtitle("Boxplot")
+
+violin.eg + scale_y_log10()
+```
+
+
+
+#### try looking at something else, like hindfoot_length
+
+```{r}
+ggplot(data = surveys_complete, mapping = aes(x = species_id, y = hindfoot_length)) + 
+  geom_jitter(alpha = 0.3, color = "cyan2") +
+  geom_boxplot(alpha = 0) + 
+  theme_classic()
+
+demo("colors")
+```
+
+
+
+
