@@ -47,11 +47,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 [Data Visualization in ggplot2](DataViz_ggplot2.html)
 
-[In Class exercises](Lab4_EvoGeno.html)
+[In Class exercises](Lab4_EvoGeno.html) 
 
 ## Lab 5 
 
-coming soon 
+[Data Visualization in ggplot2](Lab5final_EvoGeno.html)
+
+Exercises coming soon 
+
 
 ## Lab 6 
 
