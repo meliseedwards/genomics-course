@@ -53,7 +53,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 [Data Visualization in ggplot2](Lab5final_EvoGeno.html)
 
-Exercises coming soon 
+[Lab 5 Exercises](Lab5_Part2.html)
 
 
 ## Lab 6 
