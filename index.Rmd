@@ -55,6 +55,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 [Lab 5 Exercises](Lab5_Part2.html)
 
+[Lab 5 Extra - Animation](Hw5extra2.html)
+
 
 ## Lab 6 
 
