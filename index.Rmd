@@ -83,3 +83,9 @@ As a second year PhD student in the lab of Agnes Lacreuse, my current project fo
 ![](https://t4.ftcdn.net/jpg/01/15/89/73/240_F_115897352_7KUjZdDPnJpBSUx4tSDEOzuguJPd4Nc1.jpg)
 
 My second project focuses on sex differences in brain pathology in a nonhuman primate model of Alzheimer's Disease. Sex is considered a risk factor for neurodegenerative diseases like Alzheimer's Disease (AD) with women nearly 2x more likely to be diagnosed with the disease. The transition to menopause for cis women has been an area of interest for why cis women are more likely to succumb to AD. Significant declines in sex hormones during menopause contribute to cognitive impairment, sleep disruption, hot flashes and trouble thermoregulating. The common marmoset (C. jacchus) is a nonhuman primate neuroanatomically similar to humans that also show signs of reproductive senescense. By using RNA-sequencing, we will investigate changes in gene expression in marmosets who show signs of healthy and unhealthy aging as determined by a battery of cognitive tasks from midlife to old age. **By analyzing brain areas associated with cognition, thermoregulation and sleep, we will ask if genes associated with inflammation, synaptic plasticity, microglial activation and astrocytic hyperactivity are more prevalent in poor-performing marmosets and females.**
+
+
+*****
+
+hw link that wasn't working for psy640
+[psy 640 hw 5](please-work.html)
