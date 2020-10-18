@@ -55,12 +55,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 [Lab 5 Exercises](Lab5_Part2.html)
 
-[Lab 5 Extra - Animation](Hw5extra2.html)
+[Lab 5 Extra](Lab5Extra_EvoGenoHW_Oct17.html)
 
 
 ## Lab 6 
 
-coming soon 
+[Lab 6 : Data Maps and Interactive Graphs from the COVID-19 reporting data](Lab6.html)
+
+[Lab 6 REPORT](Lab6Report.html)
 
 ------
 
