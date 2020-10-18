@@ -1,0 +1,146 @@
+---
+title: "Lab 6 Report"
+author: "Melise Edwards"
+date: "10/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **COVID-19 Report for September 26, 2020** 
+
+
+## COVID-19 Confirmed cases in the US
+
+
+### This is a graph of confirmed COVID-19 cases in the US as of September 26, 2020. Regions in light green indicate 50,000 or more cases, which we can see is most concentrated in major cities, especially the northeast and northwest.
+
+```{r include=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(knitr)
+
+daily_report_Sept26 <-   read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/09-26-2020.csv")) %>% 
+  rename(Long = "Long_") %>% 
+  filter(Country_Region == "US") %>% 
+  filter (!Province_State %in% c("Alaska","Hawaii", "American Samoa",
+                  "Puerto Rico","Northern Mariana Islands", 
+                  "Virgin Islands", "Recovered", "Guam", "Grand Princess",
+                  "District of Columbia", "Diamond Princess")) %>% 
+  filter(Lat > 0)
+```
+
+
+```{r echo=FALSE}
+
+mybreaks <- c(1, 100, 1000, 10000, 10000)
+ggplot(daily_report_Sept26, aes(x = Long_, y = Lat, size = Confirmed)) +
+    borders("state", colour = "white", fill = "grey90") +
+    geom_point(aes(x=Long, y=Lat, size=Confirmed, color=Confirmed),stroke=F, alpha=0.7) +
+    scale_size_continuous(name="Cases", range=c(1,7), 
+                        breaks=mybreaks, labels = c("1-99",
+                        "100-999", "1,000-9,999", "10,000-99,999", "50,000+")) +
+    scale_color_viridis_c(option="viridis",name="Cases",
+                        breaks=mybreaks, labels = c("1-99",
+                        "100-999", "1,000-9,999", "10,000-99,999", "50,000+"))  +
+  theme_void() + 
+    guides( colour = guide_legend()) +
+    labs(title = "COVID-19 Confirmed Cases in the United States'") +
+    theme(
+      legend.position = "bottom",
+      text = element_text(color = "#22211d"),
+      plot.background = element_rect(fill = "#ffffff", color = NA), 
+      panel.background = element_rect(fill = "#ffffff", color = NA), 
+      legend.background = element_rect(fill = "#ffffff", color = NA)
+    ) +
+    coord_fixed(ratio=1.5)
+```
+
+ 
+
+****
+```{r include=FALSE}
+library(RColorBrewer)
+library(wesanderson)
+```
+
+```{r include=FALSE, warning=FALSE}
+daily_report_nc <-   read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/09-26-2020.csv")) %>% 
+  rename(Long = "Long_") %>% 
+  filter(Province_State == "North Carolina") %>% 
+  group_by(Admin2) %>% 
+  summarize(Confirmed = sum(Confirmed)) %>% 
+  mutate(Admin2 = tolower(Admin2))
+```
+
+
+## COVID-19 Cases in North Carolina 
+
+### Here we have a graph of confirmed COVID-19 cases in North Carolina, my home state, as of September 26, 2020 with darker green color corresponding with a higher number of confirmed cases. 
+```{r echo=FALSE}
+
+us <- map_data("state")
+nc_us <- subset(us, region == "north carolina")
+counties <- map_data("county")
+nc_county <- subset(counties, region == "north carolina")
+state_join <- left_join(nc_county, daily_report_nc, by = c("subregion" = "Admin2")) 
+# plot state map
+ggplot(data = nc_county, mapping = aes(x = long, y = lat, group = group)) + 
+  coord_fixed(1.3) + 
+# Add data layer
+  geom_polygon(data = state_join, aes(fill = Confirmed), color = "white") +
+    scale_fill_gradientn(colors = brewer.pal(n = 5, name = "BuGn"),
+                         trans = "log10") +
+  labs(title = "COVID-19 Confirmed Cases in North Carolina as of Sept 26, 2020")
+```
+
+
+
+*********
+
+```{r include=FALSE}
+library(plotly)
+```
+
+## COVID-19 Cases in North Carolina: an interactive graph
+
+### Here, we have an interactive map of North Carolina where we can see confirmed cases by country. You'll notice that Mecklenburg, Forsyth and Durham county (where I was born) have the highest number of confirmed cases in the state. 
+```{r echo=FALSE, warning=FALSE}
+
+ggplotly(
+  ggplot(data = nc_county, mapping = aes(x = long, y = lat, group = group)) + 
+  coord_fixed(1.3) + 
+# Add data layer
+  geom_polygon(data = state_join, aes(fill = Confirmed), color = "black") +
+    scale_fill_gradientn(colours = 
+                         wes_palette("Zissou1", 100, type = "continuous")) +
+  ggtitle("COVID-19 Cases in North Carolina") +
+# Cleaning up the graph
+  labs(x=NULL, y=NULL) +
+  theme(panel.border = element_blank()) +
+  theme(panel.background = element_blank()) +
+  theme(axis.ticks = element_blank()) +
+  theme(axis.text = element_blank())
+)
+```
+
+
+
+****
+
+## **Ways you can stay safe**
+
+* Wear a mask 
+* Social distance as much as possible
+* Avoid public spaces, especially crowded spaces or indoors 
+* Listen to trustworthy sources of information (like the CDC and WHO)
+
+********
+
+## **References**
+
+[Lab 6 Evolutionary Genomics](Lab6.html)
+
+["Dong E, Du H, Gardner L. An interactive web-based dashboard to track COVID-19 in real time. Lancet Inf Dis. 20(5):533-534. doi: 10.1016/S1473-3099(20)30120-1"](https://github.com/CSSEGISandData/COVID-19)
