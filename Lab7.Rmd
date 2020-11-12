@@ -1,0 +1,962 @@
+---
+title: "Lab 7 : RNA-Seq workflow:: gene-level exploratory analysis and differential expression"
+author: "Melise Edwards"
+date: "11/1/2020, late due to sickness"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lab 7: RNA-seq workflow 
+
+## Lab background 
+##### The data used in this workflow is an RNA-Seq experiment of airway smooth muscle cells treated with dexamethasone, a synthetic glucocorticoid steroid with anti-inflammatory effects. Glucocorticoids are used, for example, in asthma patients to prevent or reduce inflammation of the airways. In the experiment, four primary human airway smooth muscle cell lines were treated with 1 micromolar dexamethasone for 18 hours. For each of the four cell lines, we have a treated and an untreated sample. 
+
+Source for workflow: https://master.bioconductor.org/packages/release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html
+
+*****
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("airway")
+```
+```{r}
+BiocManager::install("rnaseqGene")
+```
+
+
+```{r}
+BiocManager::install("airway")
+BiocManager::install("tximeta")
+BiocManager::install("DESeq2")
+BiocManager::install("Gviz")
+BiocManager::install("sva")
+BiocManager::install("RUVSeq")
+BiocManager::install("fission")
+```
+
+
+**Note from Bioconductor:** expect input data as obtained, e.g., from RNA-seq or another high-throughput sequencing experiment, in the form of a matrix of un-normalized counts. The value in the i-th row and the j-th column of the matrix tells how many reads (or fragments, for paired-end RNA-seq) can be assigned to gene i in sample j.
+
+**Important Note for Analyses:** The values in the matrix should be counts or estimated counts of sequencing reads/fragments. This is important for DESeq2’s statistical model to hold, as only counts allow assessing the measurement precision correctly. It is important to never provide counts that were pre-normalized for sequencing depth/library size, as the statistical model is most powerful when applied to un-normalized counts, and is designed to account for library size differences internally.
+
+*This workflow will demonstrate how to import transcript-level quantification data, aggregating to the gene-level with tximport or tximeta.*
+
+
+```{r}
+library("airway")
+ ```
+
+```{r}
+dir <- system.file("extdata", package="airway", mustWork=TRUE)
+```
+
+```{r}
+list.files(dir)
+```
+
+```{r}
+list.files(file.path(dir, "quants"))
+```
+
+```{r}
+csvfile <- file.path(dir, "sample_table.csv")
+coldata <- read.csv(csvfile, row.names=1, stringsAsFactors=FALSE)
+coldata
+```
+
+```{r}
+coldata <- coldata[1:2,]
+coldata$names <- coldata$Run
+coldata$files <- file.path(dir, "quants", coldata$names, "quant.sf.gz")
+file.exists(coldata$files)
+```
+
+```{r}
+library("tximeta")
+se <- tximeta(coldata)
+```
+
+
+##### *Note that tximeta imports data at the transcript level.*
+
+
+
+```{r}
+
+dim(se)
+head(rownames(se))
+```
+
+**NOTE**: As this workflow is concerned with gene-level analysis, we will now summarize the transcript-level quantifications to the gene level (which internally makes use of the methods in tximport (Soneson, Love, and Robinson 2015)). The correct transcript-to-gene mapping table is automatically created based on the metadata stored within the se object.
+
+
+```{r}
+gse <- summarizeToGene(se)
+```
+
+Now we can check that the dimensions are reduced and the row IDs are now gene IDs:
+
+
+```{r}
+dim(gse)
+```
+
+```{r}
+head(rownames(gse))
+```
+
+*****
+
+## DESeq import functions  
+
+
+While the above section described use of Salmon and tximeta, there are many possible inputs to DESeq2, each of which have their own dedicated import functions. The following tools can be used generate or compile count data for use with DESeq2: tximport (Soneson, Love, and Robinson 2015), tximeta (Love et al. 2020), htseq-count (Anders, Pyl, and Huber 2015), featureCounts (Liao, Smyth, and Shi 2014), summarizeOverlaps (Lawrence et al. 2013).
+
+In our case, **tximeta** has created an object gse with three matrices: “counts” - the estimated fragment counts for each gene and sample, “abundance” - the estimated transcript abundances in TPM, and “length” - the effective gene lengths which include changes in length due to biases as well as due to transcript usage. 
+
+
+```{r}
+data(gse)
+gse
+```
+
+The counts are the first matrix, so we can examine them with just *assay* 
+
+```{r}
+assayNames(gse)
+```
+
+```{r}
+head(assay(gse))
+```
+
+```{r}
+head(assay(gse), 3)
+```
+
+```{r}
+colSums(assay(gse))
+```
+
+The rowRanges, when printed, shows the ranges for the first five and last five genes:
+
+```{r}
+rowRanges(gse)
+```
+
+The rowRanges also contains metadata about the sequences (chromosomes in our case) in the seqinfo slot:
+
+```{r}
+seqinfo(rowRanges(gse))
+
+```
+
+```{r}
+colData(gse)
+```
+
+
+## Branching Point 
+
+At this point, we have counted the fragments which overlap the genes in the gene model we specified. This is a branching point where we could use a variety of Bioconductor packages for exploration and differential expression of the count data, including edgeR (Robinson, McCarthy, and Smyth 2009), limma with the voom method (Law et al. 2014), DSS (Wu, Wang, and Wu 2013), EBSeq (Leng et al. 2013) and baySeq (Hardcastle and Kelly 2010). We will continue using DESeq2. 
+
+The *SummarizedExperiment* object is all we need to start our analysis. In the following section we will show how to use it to create the data object used by DESeq2.
+
+ 
+```{r}
+gse$donor
+gse$condition
+```
+
+
+We can rename our variables if we want. Let’s use cell to denote the donor cell line, and dex to denote the treatment condition.
+
+```{r}
+gse$cell <- gse$donor
+gse$dex <- gse$condition
+```
+
+```{r}
+levels(gse$dex)
+```
+
+```{r}
+levels(gse$dex) <- c("untrt", "trt")
+```
+
+Note: it is prefered in R that the first level of a factor be the reference level (e.g. control, or untreated samples). In this case, when the colData table was assembled the untreated samples were already set as the reference, but if this were not the case we could use relevel as shown below. While levels(...) <- above was simply for renaming the character strings associated with levels, relevel is a very different function, which decides how the variables will be coded, and how contrasts will be computed. For a two-group comparison, the use of relevel to change the reference level would flip the sign of a coefficient associated with a contrast between the two groups.
+
+
+```{r}
+library("magrittr")
+gse$dex %<>% relevel("untrt")
+gse$dex
+```
+
+%<>% is the compound assignment pipe-operator from the magrittr package, the above line of code is a concise way of saying:
+
+```{r}
+gse$dex <- relevel(gse$dex, "untrt")
+```
+
+
+If the research aim is to determine for which genes the effect of treatment is different across groups, then interaction terms can be included and tested using a design such as **~ group + treatment + group:treatment**. See the manual page for ?results for more examples. We will show how to use an interaction term to test for condition-specific changes over time in a time course example below.
+
+*****
+
+## Starting from SummarizedExperiment
+
+Again, we can quickly check the millions of fragments that could be mapped by Salmon to the genes (the second argument of round tells how many decimal points to keep).
+
+```{r}
+round( colSums(assay(gse)) / 1e6, 1 )
+```
+
+
+Once we have our fully annotated SummarizedExperiment object, we can construct a **DESeqDataSet** object from it that will then form the starting point of the analysis. We add an appropriate design for the analysis:
+
+```{r}
+library("DESeq2")
+dds <- DESeqDataSet(gse, design = ~ cell + dex)
+```
+*****
+
+
+## Starting from count matrices
+
+In this section (3.2), we will show how to build an DESeqDataSet supposing we only have a count matrix and a table of sample information. Will come back to this at the end since we have already prepared a SumarrizedExperiment. 
+
+```{r}
+countdata <- round(assays(gse)[["counts"]])
+head(countdata)
+```
+
+```{r}
+coldata <- colData(gse)
+```
+
+
+```{r}
+ddsMat <- DESeqDataSetFromMatrix(countData = countdata,
+                                 colData = coldata,
+                                 design = ~ cell + dex)
+```
+
+******
+
+## Exploratory analysis and visualization 
+
+There are two separate paths in this workflow; the one we will see first involves transformations of the counts in order to visually explore sample relationships. In the second part, we will go back to the original raw counts for statistical testing. 
+
+In order to reduce the size of our object and increase speed of our functions, going to remove rows that have no or nearly no information about the amount of gene expression. 
+
+```{r}
+nrow(dds)
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+```
+
+#### For some datasets, it may make sense to perform additional filtering. For example, one can specify that at least 3 samples have a count of 10 or higher.
+
+E.g. of how to write that^ 
+##### at least 3 samples with a count of 10 or higher
+keep <- rowSums(counts(dds) >= 10) >= 3
+
+
+*****
+
+## The variance stabilizing transformation and the rlog
+
+* principal components analysis (PCA)
+
+* When the expected amount of variance is approximately the same across different mean values, the data is said to be homoskedastic.
+
+* For RNA-seq counts, however, the expected variance grows with the mean. For example, if one performs PCA directly on a matrix of counts or normalized counts (e.g. correcting for differences in sequencing depth), the resulting plot typically depends mostly on the genes with highest counts because they show the largest absolute differences between samples. 
+
+* A simple and often used strategy to avoid this is to take the logarithm of the normalized count values plus a pseudocount of 1; however, depending on the choice of pseudocount, now the genes with the very lowest counts will contribute a great deal of noise to the resulting plot, because taking the logarithm of small counts actually inflates their variance. We can quickly show this property of counts with some simulated data
+
+**here, Poisson counts with a range of lambda from 0.1 to 100** 
+
+
+```{r}
+lambda <- 10^seq(from = -1, to = 2, length = 1000)
+cts <- matrix(rpois(1000*100, lambda), ncol = 100)
+library("vsn")
+meanSdPlot(cts, ranks = FALSE)
+```
+
+
+And for logarithm-transformed counts:
+
+
+```{r}
+log.cts.one <- log2(cts + 1)
+meanSdPlot(log.cts.one, ranks = FALSE)
+```
+
+
+As a solution, DESeq2 offers two transformations for count data that stabilize the variance across the mean: the variance stabilizing transformation (VST) for negative binomial data with a dispersion-mean trend (Anders and Huber 2010), implemented in the vst function, and the regularized-logarithm transformation or rlog (Love, Huber, and Anders 2014).
+
+###### Which transformation to choose? 
+The **VST** is much faster to compute and is less sensitive to high count outliers than the rlog. The **rlog** tends to work well on small datasets (n < 30), potentially outperforming the VST when there is a wide range of sequencing depth across samples (an order of magnitude difference). **We therefore recommend the VST for medium-to-large datasets (n > 30).** You can perform both transformations and compare the meanSdPlot or PCA plots generated, as described below.
+
+
+```{r}
+vsd <- vst(dds, blind = FALSE)
+head(assay(vsd), 3)
+```
+
+```{r}
+colData(vsd)
+```
+
+Again, for the *rlog* 
+
+```{r}
+rld <- rlog(dds, blind = FALSE)
+head(assay(rld), 3)
+```
+
+##### In the above function calls, we specified blind = FALSE, which means that differences between cell lines and treatment (the variables in the design) will not contribute to the expected variance-mean trend of the experiment!!! For a fully unsupervised transformation, one can set blind = TRUE (which is the default).
+
+To show the effect of the transformation, in the figure below we plot the first sample against the second, first simply using the log2 function (after adding 1, to avoid taking the log of zero), and then using the VST and rlog-transformed values. For the log2 approach, we need to first estimate size factors to account for sequencing depth, and then specify normalized=TRUE. Sequencing depth correction is done automatically for the vst and rlog.
+
+
+```{r}
+library("dplyr")
+library("ggplot2")
+
+dds <- estimateSizeFactors(dds)
+
+df <- bind_rows(
+  as_data_frame(log2(counts(dds, normalized=TRUE)[, 1:2]+1)) %>%
+         mutate(transformation = "log2(x + 1)"),
+  as_data_frame(assay(vsd)[, 1:2]) %>% mutate(transformation = "vst"),
+  as_data_frame(assay(rld)[, 1:2]) %>% mutate(transformation = "rlog"))
+  
+colnames(df)[1:2] <- c("x", "y")  
+
+lvls <- c("log2(x + 1)", "vst", "rlog")
+df$transformation <- factor(df$transformation, levels=lvls)
+
+ggplot(df, aes(x = x, y = y)) + geom_hex(bins = 80) +
+  coord_fixed() + facet_grid( . ~ transformation) 
+```
+
+**Scatterplot of transformed counts from two samples.** Shown are scatterplots using the log2 transform of normalized counts (left), using the VST (middle), and using the rlog (right). While the rlog is on roughly the same scale as the log2 counts, the VST has a upward shift for the smaller values. It is the differences between samples (deviation from y=x in these scatterplots) which will contribute to the distance calculations and the PCA plot.
+
+We can see how genes with low counts (bottom left-hand corner) seem to be excessively variable on the ordinary logarithmic scale, while the VST and rlog compress differences for the low count genes for which the data provide little information about differential expression.
+
+
+******
+
+## Sample distances
+
+A useful first step in an RNA-seq analysis is often to assess overall similarity between samples: Which samples are similar to each other, which are different? Does this fit to the expectation from the experiment’s design?
+
+We use the R function dist to calculate the **Euclidean distance** between samples. To ensure we have a roughly equal contribution from all genes, we use it on the VST data. We need to **transpose** the matrix of values using **t**, because the dist function expects the different samples to be rows of its argument, and different dimensions (here, genes) to be columns.
+
+
+```{r}
+sampleDists <- dist(t(assay(vsd)))
+sampleDists
+```
+
+We visualize the distances in a heatmap in a figure below, using the function pheatmap from the pheatmap package.
+
+```{r}
+library(pheatmap)
+library(RColorBrewer)
+```
+
+
+In order to plot the sample distance matrix with the rows/columns arranged by the distances in our distance matrix, we manually provide **sampleDists** to the clustering_distance argument of the pheatmap function. 
+
+
+```{r}
+sampleDistMatrix <- as.matrix( sampleDists )
+rownames(sampleDistMatrix) <- paste( vsd$dex, vsd$cell, sep = " - " )
+colnames(sampleDistMatrix) <- NULL
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows = sampleDists,
+         clustering_distance_cols = sampleDists,
+         col = colors)
+```
+
+Can also use this package:
+
+```{r}
+library("PoiClaClu")
+poisd <- PoissonDistance(t(counts(dds)))
+```
+
+
+```{r}
+samplePoisDistMatrix <- as.matrix( poisd$dd )
+rownames(samplePoisDistMatrix) <- paste( dds$dex, dds$cell, sep=" - " )
+colnames(samplePoisDistMatrix) <- NULL
+pheatmap(samplePoisDistMatrix,
+         clustering_distance_rows = poisd$dd,
+         clustering_distance_cols = poisd$dd,
+         col = colors)
+```
+
+## PCA Plot
+
+* principal components analysis
+* Another way to visualize sample-to-sample distances
+*  In this ordination method, the data points (here, the samples) are projected onto the 2D plane such that they spread out in the two directions that explain most of the differences (figure below). 
+* The x-axis is the direction that separates the data points the most. The values of the samples in this direction are written PC1.
+* The y-axis is a direction (it must be orthogonal to the first direction) that separates the data the second most. The values of the samples in this direction are written PC2. 
+* The percent of the total variance that is contained in the direction is printed in the axis label. 
+* **Note** that these percentages do not add to 100%, because there are more dimensions that contain the remaining variance (although each of these remaining dimensions will explain less than the two that we see).
+
+```{r}
+plotPCA(vsd, intgroup = c("dex", "cell"))
+```
+
+
+```{r}
+pcaData <- plotPCA(vsd, intgroup = c( "dex", "cell"), returnData = TRUE)
+pcaData
+```
+
+```{r}
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+```
+
+```{r}
+ggplot(pcaData, aes(x = PC1, y = PC2, color = dex, shape = cell)) +
+  geom_point(size =3) +
+  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
+  coord_fixed() +
+  ggtitle("PCA with VST data")
+```
+
+From the PCA plot, we see that the differences between cells (the different plotting shapes) are considerable, though not stronger than the differences due to treatment with dexamethasone (red vs blue color).
+
+This shows why it will be important to account for this in differential testing by using a paired design (“paired”, because each dex treated sample is paired with one untreated sample from the same cell line). We are already set up for this design by assigning the formula **~ cell + dex** earlier.
+
+
+*****
+
+## PCA plot using Generalized PCA
+
+##### Another technique for performing dimension reduction on data that is not Normally distributed (e.g. over-dispersed count data) is generalized principal component analysis, or GLM-PCA
+
+```{r}
+library("glmpca")
+gpca <- glmpca(counts(dds), L=2)
+gpca.dat <- gpca$factors
+gpca.dat$dex <- dds$dex
+gpca.dat$cell <- dds$cell
+```
+
+```{r}
+ggplot(gpca.dat, aes(x = dim1, y = dim2, color = dex, shape = cell)) +
+  geom_point(size =3) + coord_fixed() + ggtitle("glmpca - Generalized PCA")
+```
+
+## MDS plot
+
+Another plot, very similar to the PCA plot, can be made using the multidimensional scaling (MDS) function in base R. This is useful when we don’t have a matrix of data, but only a **matrix of distances.** Here we compute the MDS for the distances calculated from the VST data and plot these in a figure below.
+
+
+```{r}
+mds <- as.data.frame(colData(vsd))  %>%
+         cbind(cmdscale(sampleDistMatrix))
+ggplot(mds, aes(x = `1`, y = `2`, color = dex, shape = cell)) +
+  geom_point(size = 3) + coord_fixed() + ggtitle("MDS with VST data")
+```
+
+Same thing using Poisson 
+
+```{r}
+mdsPois <- as.data.frame(colData(dds)) %>%
+   cbind(cmdscale(samplePoisDistMatrix))
+ggplot(mdsPois, aes(x = `1`, y = `2`, color = dex, shape = cell)) +
+  geom_point(size = 3) + coord_fixed() + ggtitle("MDS with PoissonDistances")
+```
+
+
+******
+
+## Differential expression analysis
+
+
+As we have already specified an experimental design when we created the DESeqDataSet, we can run the differential expression pipeline on the raw counts with a single call to the function DESeq:
+
+**dds <- DESeq(dds)**
+This function will print out a message for the various steps it performs. These are described in more detail in the manual page for DESeq, which can be accessed by typing ?DESeq. Briefly these are: the estimation of size factors (controlling for differences in the sequencing depth of the samples), the estimation of dispersion values for each gene, and fitting a generalized linear model.
+
+A DESeqDataSet is returned that contains all the fitted parameters within it, and the following section describes how to extract out results tables of interest from this object.
+
+
+```{r}
+dds <- DESeq(dds)
+```
+
+Calling results without any arguments will extract the estimated log2 fold changes and p values for the last variable in the design formula. If there are more than 2 levels for this variable, results will extract the results table for a comparison of the last level over the first level. The comparison is printed at the top of the output: dex trt vs untrt.
+
+```{r}
+res <- results(dds)
+res
+```
+
+We could have equivalently produced this results table with the following more specific command. Because dex is the last variable in the design, we could optionally leave off the contrast argument to extract the comparison of the two levels of **dex**
+
+```{r}
+res <- results(dds, contrast=c("dex","trt","untrt"))
+```
+
+```{r}
+mcols(res, use.names = TRUE)
+```
+
+For the above:
+
+* The first column, **baseMean**, is a just the average of the normalized count values, divided by the size factors, taken over all samples in the DESeqDataSet. The remaining four columns refer to a specific contrast, namely the comparison of the trt level over the untrt level for the factor variable dex. We will find out below how to obtain other contrasts.
+
+* The column **log2FoldChange** is the effect size estimate. It tells us how much the gene’s expression seems to have changed due to treatment with dexamethasone in comparison to untreated samples. This value is reported on a logarithmic scale to base 2: for example, a **log2 fold change of 1.5** means that the gene’s expression is **increased by a multiplicative factor of 2^1.5 ≈ 2.82.**
+
+* Of course, this estimate has an uncertainty associated with it, which is available in the column **lfcSE**, the standard error estimate for the log2 fold change estimate. We can also express the uncertainty of a particular effect size estimate as the result of a statistical test. The purpose of a test for differential expression is to test whether the data provides sufficient evidence to conclude that this value is really different from zero. DESeq2 performs for each gene a hypothesis test to see whether evidence is sufficient to decide against the null hypothesis that there is zero effect of the treatment on the gene and that the observed difference between treatment and control was merely caused by experimental variability (i.e., the type of variability that you can expect between different samples in the same treatment group). As usual in statistics, the result of this test is reported as a p value, and it is found in the column pvalue. Remember that a p value indicates the probability that a fold change as strong as the observed one, or even stronger, would be seen under the situation described by the null hypothesis.
+
+We can also summarize the results with the following line of code:
+
+```{r}
+summary(res)
+```
+
+```{r}
+res.05 <- results(dds, alpha = 0.05)
+table(res.05$padj < 0.05)
+```
+
+```{r}
+resLFC1 <- results(dds, lfcThreshold=1)
+table(resLFC1$padj < 0.1)
+```
+
+##### **IMPORTANT** - On citations and citing packages 
+If you use the results from an R analysis package in published research, you can find the proper citation for the software by typing citation("pkgName"), where you would substitute the name of the package for pkgName.
+
+
+```{r}
+results(dds, contrast = c("cell", "N061011", "N61311"))
+```
+
+*****
+
+## Multiple Testing
+
+```{r}
+sum(res$pvalue < 0.05, na.rm=TRUE)
+```
+
+```{r}
+sum(!is.na(res$pvalue))
+```
+
+```{r}
+sum(res$padj < 0.1, na.rm=TRUE)
+```
+
+All of these steps, again, are listed on: https://master.bioconductor.org/packages/release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html#starting-from-summarizedexperiment
+
+
+```{r}
+resSig <- subset(res, padj < 0.1)
+head(resSig[ order(resSig$log2FoldChange), ]) # strongest downregulation
+```
+
+```{r}
+head(resSig[ order(resSig$log2FoldChange, decreasing = TRUE), ]) #strongest upregulation
+```
+***********
+
+
+## Plotting Results 
+
+Count Plot 
+
+```{r}
+topGene <- rownames(res)[which.min(res$padj)]
+plotCounts(dds, gene = topGene, intgroup=c("dex"))
+```
+
+
+```{r}
+library("ggbeeswarm")
+geneCounts <- plotCounts(dds, gene = topGene, intgroup = c("dex","cell"),
+                         returnData = TRUE)
+ggplot(geneCounts, aes(x = dex, y = count, color = cell)) +
+  scale_y_log10() +  geom_beeswarm(cex = 3) + 
+  theme_classic()
+```
+
+```{r}
+ggplot(geneCounts, aes(x = dex, y = count, color = cell, group = cell)) +
+  scale_y_log10() + geom_point(size = 3) + geom_line()
+```
+Normalized counts with lines connecting cell lines. Note that the DESeq test actually takes into account the cell line effect, so this figure more closely depicts the difference being tested.
+
+
+```{r}
+library("apeglm")
+resultsNames(dds)
+```
+
+```{r}
+res <- lfcShrink(dds, coef="dex_trt_vs_untrt", type="apeglm")
+plotMA(res, ylim = c(-5, 5))
+```
+
+
+An MA-plot of changes induced by treatment below:
+
+```{r}
+res.noshr <- results(dds, name="dex_trt_vs_untrt")
+plotMA(res.noshr, ylim = c(-5, 5))
+```
+```{r}
+plotMA(res, ylim = c(-5,5))
+topGene <- rownames(res)[which.min(res$padj)]
+with(res[topGene, ], {
+  points(baseMean, log2FoldChange, col="dodgerblue", cex=2, lwd=2)
+  text(baseMean, log2FoldChange, topGene, pos=2, col="dodgerblue")
+}) 
+```
+
+```{r}
+hist(res$pvalue[res$baseMean > 1], breaks = 0:20/20,
+     col = "grey50", border = "white")
+```
+
+
+****
+
+## Gene Clustering 
+
+
+```{r}
+library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 20)
+```
+
+```{r}
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("cell","dex")])
+pheatmap(mat, annotation_col = anno)
+```
+
+
+## Independent Filtering
+
+```{r}
+qs <- c(0, quantile(resLFC1$baseMean[resLFC1$baseMean > 0], 0:6/6))
+bins <- cut(resLFC1$baseMean, qs)
+levels(bins) <- paste0("~", round(signif((qs[-1] + qs[-length(qs)])/2, 2)))
+fractionSig <- tapply(resLFC1$pvalue, bins, function(p)
+                          mean(p < .05, na.rm = TRUE))
+barplot(fractionSig, xlab = "mean normalized count",
+                     ylab = "fraction of small p values")
+```
+^ The ratio of small p values for genes binned by mean normalized count. The p values are from a test of log2 fold change greater than 1 or less than -1. This plot demonstrates that genes with very low mean count have little or no power, and are best excluded from testing.
+
+The DESeq2 software automatically performs independent filtering that maximizes the number of genes with adjusted p value less than a critical value (by default, alpha is set to 0.1). This automatic independent filtering is performed by, and can be controlled by, the results function.
+ 
+
+## Annotating and Exporting Results
+
+```{r}
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+```
+
+```{r}
+columns(org.Hs.eg.db)
+
+```
+```{r}
+ens.str <- substr(rownames(res), 1, 15)
+res$symbol <- mapIds(org.Hs.eg.db,
+                     keys=ens.str,
+                     column="SYMBOL",
+                     keytype="ENSEMBL",
+                     multiVals="first")
+res$entrez <- mapIds(org.Hs.eg.db,
+                     keys=ens.str,
+                     column="ENTREZID",
+                     keytype="ENSEMBL",
+                     multiVals="first")
+```
+
+```{r}
+resOrdered <- res[order(res$pvalue),]
+head(resOrdered)
+```
+
+
+## Exporting Results 
+
+```{r}
+resOrderedDF <- as.data.frame(resOrdered)[1:100, ]
+write.csv(resOrderedDF, file = "results.csv")
+```
+
+```{r eval=FALSE, include=FALSE}
+library("ReportingTools")
+htmlRep <- HTMLReport(shortName="report", title="My report",
+                      reportDirectory="./report")
+publish(resOrderedDF, htmlRep)
+url <- finish(htmlRep)
+browseURL(url)
+```
+
+## lotting fold changes in genomic space
+
+```{r}
+resGR <- lfcShrink(dds, coef="dex_trt_vs_untrt", type="apeglm", format="GRanges")
+resGR
+```
+
+
+```{r}
+ens.str <- substr(names(resGR), 1, 15)
+resGR$symbol <- mapIds(org.Hs.eg.db, ens.str, "SYMBOL", "ENSEMBL")
+```
+
+```{r}
+library("Gviz")
+```
+```{r}
+window <- resGR[topGene] + 1e6
+strand(window) <- "*"
+resGRsub <- resGR[resGR %over% window]
+naOrDup <- is.na(resGRsub$symbol) | duplicated(resGRsub$symbol)
+resGRsub$group <- ifelse(naOrDup, names(resGRsub), resGRsub$symbol)
+```
+
+
+```{r}
+status <- factor(ifelse(resGRsub$padj < 0.05 & !is.na(resGRsub$padj),
+                        "sig", "notsig"))
+```
+
+```{r}
+options(ucscChromosomeNames = FALSE)
+g <- GenomeAxisTrack()
+a <- AnnotationTrack(resGRsub, name = "gene ranges", feature = status)
+d <- DataTrack(resGRsub, data = "log2FoldChange", baseline = 0,
+               type = "h", name = "log2 fold change", strand = "+")
+plotTracks(list(g, d, a), groupAnnotation = "group",
+           notsig = "grey", sig = "hotpink")
+```
+
+
+```{r}
+library("sva")
+```
+
+
+```{r}
+dat  <- counts(dds, normalized = TRUE)
+idx  <- rowMeans(dat) > 1
+dat  <- dat[idx, ]
+mod  <- model.matrix(~ dex, colData(dds))
+mod0 <- model.matrix(~   1, colData(dds))
+svseq <- svaseq(dat, mod, mod0, n.sv = 2)
+```
+
+```{r}
+svseq$sv
+
+```
+
+
+```{r}
+par(mfrow = c(2, 1), mar = c(3,5,3,1))
+for (i in 1:2) {
+  stripchart(svseq$sv[, i] ~ dds$cell, vertical = TRUE, main = paste0("SV", i))
+  abline(h = 0)
+ }
+```
+
+
+```{r}
+ddssva <- dds
+ddssva$SV1 <- svseq$sv[,1]
+ddssva$SV2 <- svseq$sv[,2]
+design(ddssva) <- ~ SV1 + SV2 + dex
+```
+
+
+```{r}
+library("RUVSeq")
+```
+
+```{r}
+set <- newSeqExpressionSet(counts(dds))
+idx  <- rowSums(counts(set) > 5) >= 2
+set  <- set[idx, ]
+set <- betweenLaneNormalization(set, which="upper")
+not.sig <- rownames(res)[which(res$pvalue > .1)]
+empirical <- rownames(set)[ rownames(set) %in% not.sig ]
+set <- RUVg(set, empirical, k=2)
+pData(set)
+```
+
+```{r}
+par(mfrow = c(2, 1), mar = c(3,5,3,1))
+for (i in 1:2) {
+  stripchart(pData(set)[, i] ~ dds$cell, vertical = TRUE, main = paste0("W", i))
+  abline(h = 0)
+ }
+```
+
+```{r}
+ddsruv <- dds
+ddsruv$W1 <- set$W_1
+ddsruv$W2 <- set$W_2
+design(ddsruv) <- ~ W1 + W2 + dex
+```
+
+
+```{r}
+library("fission")
+data("fission")
+ddsTC <- DESeqDataSet(fission, ~ strain + minute + strain:minute)
+```
+
+```{r}
+ddsTC <- DESeq(ddsTC, test="LRT", reduced = ~ strain + minute)
+resTC <- results(ddsTC)
+resTC$symbol <- mcols(ddsTC)$symbol
+head(resTC[order(resTC$padj),], 4)
+
+```
+
+```{r}
+fiss <- plotCounts(ddsTC, which.min(resTC$padj), 
+                   intgroup = c("minute","strain"), returnData = TRUE)
+fiss$minute <- as.numeric(as.character(fiss$minute))
+ggplot(fiss,
+  aes(x = minute, y = count, color = strain, group = strain)) + 
+  geom_point() + stat_summary(fun.y=mean, geom="line") +
+  scale_y_log10()
+```
+
+
+
+```{r}
+resultsNames(ddsTC)
+```
+
+
+```{r}
+res30 <- results(ddsTC, name="strainmut.minute30", test="Wald")
+res30[which.min(resTC$padj),]
+
+```
+
+
+```{r}
+betas <- coef(ddsTC)
+colnames(betas)
+```
+```{r}
+topGenes <- head(order(resTC$padj),20)
+mat <- betas[topGenes, -c(1,2)]
+thr <- 3 
+mat[mat < -thr] <- -thr
+mat[mat > thr] <- thr
+pheatmap(mat, breaks=seq(from=-thr, to=thr, length=101),
+         cluster_col=FALSE)
+```
+```{r}
+sessionInfo() # reports the version numbers of R and all the packages used in this session
+```
+
+
+## Citations
+
+Anders, Simon, and Wolfgang Huber. 2010. “Differential expression analysis for sequence count data.” Genome Biology 11 (10): R106+. https://doi.org/10.1186/gb-2010-11-10-r106.
+
+Anders, Simon, Paul T. Pyl, and Wolfgang Huber. 2015. “HTSeq – a Python framework to work with high-throughput sequencing data.” Bioinformatics 31 (2): 166–69. https://doi.org/10.1093/bioinformatics/btu638.
+
+Benjamini, Yoav, and Yosef Hochberg. 1995. “Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing.” Journal of the Royal Statistical Society. Series B (Methodological) 57 (1): 289–300. http://www.jstor.org/stable/2346101.
+
+Bourgon, R., R. Gentleman, and W. Huber. 2010. “Independent filtering increases detection power for high-throughput experiments.” Proceedings of the National Academy of Sciences 107 (21): 9546–51. https://doi.org/10.1073/pnas.0914005107.
+
+Bray, Nicolas, Harold Pimentel, Pall Melsted, and Lior Pachter. 2016. “Near-Optimal Probabilistic Rna-Seq Quantification.” Nature Biotechnology 34: 525–27. http://dx.doi.org/10.1038/nbt.3519.
+
+Dudoit, Rine, Yee H. Yang, Matthew J. Callow, and Terence P. Speed. 2002. “Statistical methods for identifying differentially expressed genes in replicated cDNA microarray experiments.” Statistica Sinica, 111–39.
+
+Frankish, Adam, Alexandra Bignell, Andrew Berry, Andrew Yates, Anne Parker, Bianca M Schmitt, Bronwen Aken, et al. 2018. “GENCODE reference annotation for the human and mouse genomes.” Nucleic Acids Research 47 (D1): D766–D773.
+
+Hardcastle, Thomas, and Krystyna Kelly. 2010. “baySeq: Empirical Bayesian methods for identifying differential expression in sequence count data.” BMC Bioinformatics 11 (1): 422+. https://doi.org/10.1186/1471-2105-11-422.
+
+Himes, Blanca E., Xiaofeng Jiang, Peter Wagner, Ruoxi Hu, Qiyu Wang, Barbara Klanderman, Reid M. Whitaker, et al. 2014. “RNA-Seq transcriptome profiling identifies CRISPLD2 as a glucocorticoid responsive gene that modulates cytokine function in airway smooth muscle cells.” PloS One 9 (6). https://doi.org/10.1371/journal.pone.0099625.
+
+Huber, Wolfgang, Vincent J. Carey, Robert Gentleman, Simon Anders, Marc Carlson, Benilton S. Carvalho, Hector Corrada C. Bravo, et al. 2015. “Orchestrating high-throughput genomic analysis with Bioconductor.” Nature Methods 12 (2): 115–21. https://doi.org/10.1038/nmeth.3252.
+
+Huntley, Melanie A., Jessica L. Larson, Christina Chaivorapol, Gabriel Becker, Michael Lawrence, Jason A. Hackney, and Joshua S. Kaminker. 2013. “ReportingTools: an automated result processing and presentation toolkit for high-throughput genomic analyses.” Bioinformatics 29 (24): 3220–1. https://doi.org/10.1093/bioinformatics/btt551.
+
+Ignatiadis, Nikolaos, Bernd Klaus, Judith Zaugg, and Wolfgang Huber. 2016. “Data-Driven Hypothesis Weighting Increases Detection Power in Genome-Scale Multiple Testing.” Nature Methods. http://dx.doi.org/10.1038/nmeth.3885.
+
+Köster, Johannes, and Sven Rahmann. 2012. “Snakemake - A scalable bioinformatics workflow engine.” Bioinformatics. https://doi.org/10.1093/bioinformatics/bts480.
+
+Law, Charity W., Yunshun Chen, Wei Shi, and Gordon K. Smyth. 2014. “Voom: precision weights unlock linear model analysis tools for RNA-seq read counts.” Genome Biology 15 (2): R29+. https://doi.org/10.1186/gb-2014-15-2-r29.
+
+Lawrence, Michael, Wolfgang Huber, Hervé Pagès, Patrick Aboyoun, Marc Carlson, Robert Gentleman, Martin T. Morgan, and Vincent J. Carey. 2013. “Software for Computing and Annotating Genomic Ranges.” Edited by Andreas Prlic. PLoS Computational Biology 9 (8): e1003118+. https://doi.org/10.1371/journal.pcbi.1003118.
+
+Leek, Jeffrey T. 2014. “svaseq: removing batch effects and other unwanted noise from sequencing data.” Nucleic Acids Research 42 (21): 000. https://doi.org/10.1093/nar/gku864.
+
+Leng, N., J. A. Dawson, J. A. Thomson, V. Ruotti, A. I. Rissman, B. M. G. Smits, J. D. Haag, M. N. Gould, R. M. Stewart, and C. Kendziorski. 2013. “EBSeq: an empirical Bayes hierarchical model for inference in RNA-seq experiments.” Bioinformatics 29 (8): 1035–43. https://doi.org/10.1093/bioinformatics/btt087.
+
+Leong, Hui S., Keren Dawson, Chris Wirth, Yaoyong Li, Yvonne Connolly, Duncan L. Smith, Caroline R. Wilkinson, and Crispin J. Miller. 2014. “A global non-coding RNA system modulates fission yeast protein levels in response to stress.” Nature Communications 5. https://doi.org/10.1038/ncomms4947.
+
+Li, Bo, and Colin N. Dewey. 2011. “RSEM: accurate transcript quantification from RNA-Seq data with or without a reference genome.” BMC Bioinformatics 12: 323+. https://doi.org/10.1186/1471-2105-12-3231.
+
+Liao, Y., G. K. Smyth, and W. Shi. 2014. “featureCounts: an efficient general purpose program for assigning sequence reads to genomic features.” Bioinformatics 30 (7): 923–30. https://doi.org/10.1093/bioinformatics/btt656.
+
+Love, Michael I., John B. Hogenesch, and Rafael A. Irizarry. 2016. “Modeling of Rna-Seq Fragment Sequence Bias Reduces Systematic Errors in Transcript Abundance Estimation.” Nature Biotechnology 34 (12): 1287–91. http://dx.doi.org/10.1038/nbt.3682.
+
+Love, Michael I., Wolfgang Huber, and Simon Anders. 2014. “Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2.” Genome Biology 15 (12): 550+. https://doi.org/10.1186/s13059-014-0550-8.
+
+Love, Michael I., Charlotte Soneson, Peter F. Hickey, Lisa K. Johnson, N. Tessa Pierce, Lori Shepherd, Martin Morgan, and Rob Patro. 2020. “Tximeta: Reference sequence checksums for provenance identification in RNA-seq.” PLOS Computational Biology. https://doi.org/10.1371/journal.pcbi.1007664.
+
+Patro, Rob, Geet Duggal, Michael I. Love, Rafael A. Irizarry, and Carl Kingsford. 2017. “Salmon Provides Fast and Bias-Aware Quantification of Transcript Expression.” Nature Methods. http://dx.doi.org/10.1038/nmeth.4197.
+
+Risso, Davide, John Ngai, Terence P. Speed, and Sandrine Dudoit. 2014. “Normalization of RNA-seq data using factor analysis of control genes or samples.” Nature Biotechnology 32 (9): 896–902. https://doi.org/10.1038/nbt.2931.
+
+Robert, Christelle, and Mick Watson. 2015. “Errors in RNA-Seq quantification affect genes of relevance to human disease.” Genome Biology. https://doi.org/10.1186/s13059-015-0734-x.
+
+Robinson, M. D., D. J. McCarthy, and G. K. Smyth. 2009. “edgeR: a Bioconductor package for differential expression analysis of digital gene expression data.” Bioinformatics 26 (1): 139–40. https://doi.org/10.1093/bioinformatics/btp616.
+
+Schurch, Nicholas J., Pieta Schofield, Marek Gierlinski, Christian Cole, Alexander Sherstnev, Vijender Singh, Nicola Wrobel, et al. 2016. “How Many Biological Replicates Are Needed in an Rna-Seq Experiment and Which Differential Expression Tool Should You Use?” 22 (6): 839–51. https://doi.org/10.1261/rna.053959.115.
+
+Soneson, Charlotte, Michael I. Love, and Mark Robinson. 2015. “Differential analyses for RNA-seq: transcript-level estimates improve gene-level inferences.” F1000Research 4 (1521). https://doi.org/10.12688/f1000research.7563.1.
+
+Tonner, Peter D, Cynthia L Darnell, Barbara E Engelhardt, and Amy K Schmid. 2017. “Detecting differential growth of microbial populations with Gaussian process regression.” Genome Research 27: 320–33. https://doi.org/10.1101/gr.210286.116.
+
+Townes, F. William, Stephanie C. Hicks, Martin J. Aryee, and Rafael A. Irizarry. 2019. “Feature Selection and Dimension Reduction for Single Cell Rna-Seq Based on a Multinomial Model.” bioRxiv. https://doi.org/10.1101/574574.
+
+Trapnell, Cole, David G Hendrickson, Martin Sauvageau, Loyal Goff, John L Rinn, and Lior Pachter. 2013. “Differential analysis of gene regulation at transcript resolution with RNA-seq.” Nature Biotechnology. https://doi.org/10.1038/nbt.2450.
+
+Wickham, Hadley. 2009. ggplot2. New York, NY: Springer New York. https://doi.org/10.1007/978-0-387-98141-3.
+
+Witten, Daniela M. 2011. “Classification and clustering of sequencing data using a Poisson model.” The Annals of Applied Statistics 5 (4): 2493–2518. https://doi.org/10.1214/11-AOAS493.
+
+Wu, Hao, Chi Wang, and Zhijin Wu. 2013. “A new shrinkage estimator for dispersion improves differential expression detection in RNA-seq data.” Biostatistics 14 (2): 232–43. https://doi.org/10.1093/biostatistics/kxs033.
+
+Zhu, Anqi, Joseph G. Ibrahim, and Michael I. Love. 2018. “Heavy-Tailed Prior Distributions for Sequence Count Data: Removing the Noise and Preserving Large Differences.” bioRxiv. https://doi.org/10.1101/303255.
