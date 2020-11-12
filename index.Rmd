@@ -64,6 +64,20 @@ knitr::opts_chunk$set(echo = TRUE)
 
 [Lab 6 REPORT](Lab6Report.html)
 
+
+## Lab 7 
+
+[Lab 7: RNAseq Workflow](Lab7.html)
+
+
+## Lab 8 - COMING SOON (late due to sickness)
+
+
+## Lab 9 - COMING SOON (late due to sickness)
+
+
+## Lab 10 - COMING SOON (late due to sickness)
+
 ------
 
 # **Current Research Projects**
