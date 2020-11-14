@@ -70,13 +70,19 @@ knitr::opts_chunk$set(echo = TRUE)
 [Lab 7: RNAseq Workflow](Lab7.html)
 
 
-## Lab 8 - COMING SOON (late due to sickness)
+## Lab 8
+
+[Lab 8: Sequence Alignment and GGTREE](Lab8.html)
+
 
 
 ## Lab 9 - COMING SOON (late due to sickness)
 
 
 ## Lab 10 - COMING SOON (late due to sickness)
+
+
+## Lab 11 - COMING SOON (late due to sickness)
 
 ------
 
