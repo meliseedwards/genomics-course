@@ -2,7 +2,6 @@
 title: "Evolutionary Genomics & Bioinformatics"
 author: "Melise Edwards"
 output: html_document
-bibliography: data/references.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -80,8 +79,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 [Lab 9: Regular Expressions in R](Lab9.html)
 
+[Lab 9A: Control Structures and Functions](Lab9A.html)
 
-## Lab 10 - COMING SOON (late due to sickness)
+
+## Lab 10 
+
+[Lab 10: Population genomics based on high throughput sequencing (HTS)](Lab10.html)
 
 
 ## Lab 11 - COMING SOON (late due to sickness)
@@ -111,5 +114,10 @@ My second project focuses on sex differences in brain pathology in a nonhuman pr
 
 *****
 
-hw link that wasn't working for psy640
-[psy 640 hw 5](please-work.html)
+### Cell type specific responses to estradiol 
+
+![](https://cdn.shopify.com/s/files/1/1456/8506/articles/microglia_1024x1024.png?v=1587935389)
+
+Finally, I am interested in cell type-specific responses to exogenous estradiol in induced pluripotent stem cells (iPSCs) derived from common marmoset tissue. Estradiol has been shown to facilitate excitatory neurotransmission by physically interacting with Glutamate receptors and exerting a dampening response for GABA signaling and glial cells. By cultivating marmoset cells *in vitro* and recording their responsivity using electrophysiology, we can study the effects of estradiol on specific marmoset cell types. 
+
+
