@@ -1,0 +1,209 @@
+---
+title: "Lab 9A"
+author: "Melise Edwards"
+date: "11/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lab 9A : Programming in R - Control Structures and Functions
+https://jeffreyblanchard.github.io/EvoGeno/EvoGeno_Lab9x_progR_loops.html#excercises
+*late due to sickness* 
+
+
+
+## If - Else function
+
+```{r}
+## Generate a uniform random number
+x <- runif(1, 0, 20)  
+if(x > 4) {
+        y <- 10
+} else {
+        y <- 0
+}
+```
+
+
+**Important Operators**
+
+Comparison operators:
+
+* == (equal)
+* != (not equal)
+* greater than  (>) 
+* greater than or equal (>= )
+* < (less than)
+* <= (less than or equal)
+* Logical operators
+* & (and)
+* | (or)
+* ! (not)
+
+```{r}
+# FOR LOOPS
+
+for(i in 1:5) {
+        print(i)
+}
+```
+
+```{r}
+x <- c("apple", "banana", "orange", "kiwi")
+for(i in 1:4) {
+        ## Print out each element of 'x'
+        print(x[i])  
+}
+```
+
+```{r}
+## Generate an integer sequence based on length of an object, in this case, 'x'
+for(i in seq_along(x)) {   
+        print(x[i])
+}
+```
+
+```{r}
+# not necessary to use an index-type variable
+for(letter in x) {
+        print(letter)
+}
+```
+
+```{r}
+# if the loop is only one line, curly brackets are not necessary, but good to add just in case you expand it later 
+for(i in 1:3) print(x[i])
+```
+
+*******
+
+
+## Nested *for* loops 
+
+```{r}
+# for loops can be nested inside of each other 
+
+x <- matrix(1:12, 3, 4, byrow = TRUE)
+for(i in seq_len(nrow(x))) {
+        for(j in seq_len(ncol(x))) {
+                print(x[i, j])
+        }   
+}
+```
+
+******
+
+## *while* loops
+
+```{r}
+# While loops begin by testing a condition. If it is true, then they execute the loop body. Once the loop body is executed, the condition is tested again, and so forth, until the condition is false, after which the loop exits.
+
+count <- 0 # initial assignment of count = 0
+
+while (count < 10) {
+  print(count)
+  count <- count + 1 # included in curly bracket, performed over and over again in loop body
+  
+}
+
+# be careful of writing 'infinite loops' with this control structure! 
+
+```
+
+```{r}
+# my count
+counting <- 1
+
+while(counting < 5) {
+  print(counting)
+  counting <- counting + 0.5 
+}
+
+```
+
+```{r}
+z <- 5
+
+set.seed(1)
+while(z >= 3 && z <= 10) { # always evaluated from left to right
+        coin <- rbinom(1, 1, 0.5)
+        
+        if(coin == 1) {  ## random walk
+                z <- z + 1
+        } else {
+                z <- z - 1
+        } 
+}
+print(z)
+```
+
+
+*****
+
+## Functions 
+
+
+```{r}
+f <- function() {
+        ## This is an empty function
+}
+## Functions have their own class
+class(f) 
+```
+
+```{r}
+f <- function() {
+        cat("I love coding!\n")
+}
+f()
+```
+
+```{r}
+# Function Arguments 
+
+f <- function(num) { # basically saying "f" is the function of some undetermined number 
+        for(i in seq_len(num)) {
+                cat("I love coding!\n")
+        }
+}
+f(3) # the function is just printing 3 times, it is not returning anything. Might be helpful if you find yourself copying and pasting a lot
+```
+
+```{r}
+f <- function(num) {
+        love <- "I love coding!\n"
+        for(i in seq_len(num)) {
+                cat(love) # cat is useful for producing output in user-defined functions; converts arguments to character vectors
+        }
+        chars <- nchar(love) * num # dont understand what role this plays 
+        chars
+}
+bioinformatics <- f(3)
+```
+
+```{r}
+print(bioinformatics) # oh okay so this takes into account the computation of 'chars' 
+```
+
+```{r}
+f <- function(num = 1) {
+        hello <- "Hello, world!\n"
+        for(i in seq_len(num)) {
+                cat(hello)
+        }
+        chars <- nchar(hello) * num
+        chars
+}
+f()    ## f() uses the default value (1) for 'num' above, however you can input whatever number to use something besides the default
+```
+
+
+```{r}
+f(2) # using a number besides the default gives us = 
+```
+```{r}
+f(num = 2) # same thing, different way to write it 
+```
