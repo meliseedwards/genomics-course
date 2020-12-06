@@ -99,6 +99,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Lab 12 
 
+[Lab 12: Network Analysis using Cytoscape and RCy3](Lab12.html)
+
 
 
 ## Lab 13 
